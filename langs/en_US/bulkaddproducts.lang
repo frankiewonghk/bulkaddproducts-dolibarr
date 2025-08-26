@@ -1,0 +1,18 @@
+# Language file for module BulkAddProducts
+# Copyright (C) 2025 LH Wong
+
+#
+# Generic
+#
+CHARSET=UTF-8
+
+#
+# Module
+#
+ModuleBulkaddproductsName=Bulk Add Products
+ModuleBulkaddproductsDesc=This module provides hook-based functionality to add multiple products to customer and supplier documents including Quotations, Sales Orders, Customer Invoices, Purchase Orders and Supplier Invoices.
+
+#
+# Error messages
+#
+ModuleNotCompatibleWithCurrentVersion=This module is not compatible with your current Dolibarr version. Please upgrade to Dolibarr 17.0.0 or later.
