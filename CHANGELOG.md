@@ -6,3 +6,6 @@
 - AJAX add row + save all functionality
 - CKEditor/FCKEditor description support
 - Dolibarr v17–22 compatibility
+
+## 1.0.2 — 2025-08-26
+- Update module and description

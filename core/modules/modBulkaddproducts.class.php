@@ -47,7 +47,7 @@ class modBulkaddproducts extends DolibarrModules
         $this->descriptionlong = "This module provides hook-based functionality to add multiple products to customer and supplier documents including Quotations, Sales Orders, Customer Invoices, Purchase Orders and Supplier Invoices.";
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '1.0.1';
+        $this->version = '1.0.2';
         
         // Url to the file with your last numberversion of this module
         $this->url_last_version = '';
@@ -184,7 +184,7 @@ class modBulkaddproducts extends DolibarrModules
     {
         global $langs;
         $langs->load("bulkaddproducts@bulkaddproducts");
-        return $langs->trans("BulkAddProductsModule");
+        return $langs->trans("ModuleBulkaddproductsName");
     }
 
     /**
@@ -196,7 +196,7 @@ class modBulkaddproducts extends DolibarrModules
     {
         global $langs;
         $langs->load("bulkaddproducts@bulkaddproducts");
-        return $langs->trans("BulkAddProductsModuleDesc");
+        return $langs->trans("ModuleBulkaddproductsDesc");
     }
 
     /**
