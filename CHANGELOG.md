@@ -9,3 +9,6 @@
 
 ## 1.0.2 — 2025-08-26
 - Update module and description
+
+## 1.0.3 - 2025-08-26
+- Reload page without the "action" parameter after the lines are saved

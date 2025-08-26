@@ -430,7 +430,10 @@ class ActionsBulkaddproducts
                         $("#btn_custom_save_all").prop("disabled", false);
                         $("#btn_custom_save_all").removeClass("butActionRefused");
                         $("#btn_custom_add_row").show();
-                        location.reload();
+                         // Reload page without the "action" parameter
+                        var currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.delete(\'action\');
+                        window.location.href = currentUrl.toString();
                         return;
                     }
                     
