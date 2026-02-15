@@ -152,7 +152,7 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ## Version
 
-1.0.1
+1.0.4
 
 ## Author
 

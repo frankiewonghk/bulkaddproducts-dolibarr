@@ -63,13 +63,26 @@ class ActionsBulkaddproducts
         global $conf;
         
 
-        // Set user permissions
+        // Set user permissions (compatible with Dolibarr 17-22)
         $this->usercancreatepropal = $user->hasRight("propal", "creer");
         $this->usercancreatecommande = $user->hasRight("commande", "creer");
         $this->usercancreateinvoice = $user->hasRight("facture", "creer");
-        $this->usercancreatefournisseur_propal = $user->hasRight("fournisseur", "propal", "creer") || $user->hasRight("supplier_proposal", "creer");
-        $this->usercancreatefournisseur_order = $user->hasRight("fournisseur", "commande", "creer") || $user->hasRight("supplier_order", "creer");
-        $this->usercancreatefournisseur_invoice = $user->hasRight("fournisseur", "facture", "creer") || $user->hasRight("supplier_invoice", "creer");
+
+        // Supplier permissions: Check new format first (v22+), then old format (v17-21) for backward compatibility
+        $this->usercancreatefournisseur_propal = $user->hasRight("supplier_proposal", "creer");
+        if (!$this->usercancreatefournisseur_propal && method_exists($user, 'rights') && isset($user->rights->fournisseur->propal->creer)) {
+            $this->usercancreatefournisseur_propal = $user->rights->fournisseur->propal->creer;
+        }
+
+        $this->usercancreatefournisseur_order = $user->hasRight("supplier_order", "creer");
+        if (!$this->usercancreatefournisseur_order && method_exists($user, 'rights') && isset($user->rights->fournisseur->commande->creer)) {
+            $this->usercancreatefournisseur_order = $user->rights->fournisseur->commande->creer;
+        }
+
+        $this->usercancreatefournisseur_invoice = $user->hasRight("supplier_invoice", "creer");
+        if (!$this->usercancreatefournisseur_invoice && method_exists($user, 'rights') && isset($user->rights->fournisseur->facture->creer)) {
+            $this->usercancreatefournisseur_invoice = $user->rights->fournisseur->facture->creer;
+        }
 
 
         // Ensure we are on order card or propal card or contract card or invoice card or invoicerec card or supplier_proposal card or supplier_order card or supplier_invoice card or supplier_invoice_rec card
@@ -239,14 +252,26 @@ class ActionsBulkaddproducts
         global $user;
         global $langs;
         
-        // Set user permissions
-         // Set user permissions
-         $this->usercancreatepropal = $user->hasRight("propal", "creer");
-         $this->usercancreatecommande = $user->hasRight("commande", "creer");
-         $this->usercancreateinvoice = $user->hasRight("facture", "creer");
-         $this->usercancreatefournisseur_propal = $user->hasRight("fournisseur", "propal", "creer") || $user->hasRight("supplier_proposal", "creer");
-         $this->usercancreatefournisseur_order = $user->hasRight("fournisseur", "commande", "creer") || $user->hasRight("supplier_order", "creer");
-         $this->usercancreatefournisseur_invoice = $user->hasRight("fournisseur", "facture", "creer") || $user->hasRight("supplier_invoice", "creer");
+        // Set user permissions (compatible with Dolibarr 17-22)
+        $this->usercancreatepropal = $user->hasRight("propal", "creer");
+        $this->usercancreatecommande = $user->hasRight("commande", "creer");
+        $this->usercancreateinvoice = $user->hasRight("facture", "creer");
+
+        // Supplier permissions: Check new format first (v22+), then old format (v17-21) for backward compatibility
+        $this->usercancreatefournisseur_propal = $user->hasRight("supplier_proposal", "creer");
+        if (!$this->usercancreatefournisseur_propal && method_exists($user, 'rights') && isset($user->rights->fournisseur->propal->creer)) {
+            $this->usercancreatefournisseur_propal = $user->rights->fournisseur->propal->creer;
+        }
+
+        $this->usercancreatefournisseur_order = $user->hasRight("supplier_order", "creer");
+        if (!$this->usercancreatefournisseur_order && method_exists($user, 'rights') && isset($user->rights->fournisseur->commande->creer)) {
+            $this->usercancreatefournisseur_order = $user->rights->fournisseur->commande->creer;
+        }
+
+        $this->usercancreatefournisseur_invoice = $user->hasRight("supplier_invoice", "creer");
+        if (!$this->usercancreatefournisseur_invoice && method_exists($user, 'rights') && isset($user->rights->fournisseur->facture->creer)) {
+            $this->usercancreatefournisseur_invoice = $user->rights->fournisseur->facture->creer;
+        }
         
         // Ensure we are on order card or propal card or contract card or invoice card or invoicerec card or supplier_proposal card or supplier_order card or supplier_invoice card or supplier_invoice_rec card
         if (empty($parameters['currentcontext']) 
