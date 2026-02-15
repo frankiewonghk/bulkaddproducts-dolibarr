@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.5 — 2026-02-15
+- Fix Purchase Order (Supplier Order) permission checking for Dolibarr 22.0.4
+- Enhanced permission detection with multiple format attempts (supplier_order, fournisseur/commande)
+- Try both "creer" and "write" permission types for better v22+ compatibility
+- Module now fully functional on Purchase Orders and Supplier Invoices in Dolibarr 22.0.4
+
 ## 1.0.4 — 2026-02-15
 - Fix compatibility with Dolibarr 22.0.4
 - Update supplier permission checking logic to work with v22+ permission format

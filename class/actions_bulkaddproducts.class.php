@@ -61,7 +61,6 @@ class ActionsBulkaddproducts
         global $mysoc;
         global $soc;
         global $conf;
-        
 
         // Set user permissions (compatible with Dolibarr 17-22)
         $this->usercancreatepropal = $user->hasRight("propal", "creer");
@@ -74,38 +73,71 @@ class ActionsBulkaddproducts
             $this->usercancreatefournisseur_propal = $user->rights->fournisseur->propal->creer;
         }
 
-        $this->usercancreatefournisseur_order = $user->hasRight("supplier_order", "creer");
-        if (!$this->usercancreatefournisseur_order && method_exists($user, 'rights') && isset($user->rights->fournisseur->commande->creer)) {
-            $this->usercancreatefournisseur_order = $user->rights->fournisseur->commande->creer;
+        // Try multiple permission formats for supplier orders (v17-22 compatibility)
+        $this->usercancreatefournisseur_order = false;
+
+        // v22+ format attempts
+        if ($user->hasRight("supplier_order", "creer")) {
+            $this->usercancreatefournisseur_order = true;
+        } elseif ($user->hasRight("supplier_order", "write")) {
+            $this->usercancreatefournisseur_order = true;
+        } elseif ($user->hasRight("fournisseur", "commande", "creer")) {
+            $this->usercancreatefournisseur_order = true;
         }
 
-        $this->usercancreatefournisseur_invoice = $user->hasRight("supplier_invoice", "creer");
-        if (!$this->usercancreatefournisseur_invoice && method_exists($user, 'rights') && isset($user->rights->fournisseur->facture->creer)) {
-            $this->usercancreatefournisseur_invoice = $user->rights->fournisseur->facture->creer;
+        // v17-21 format fallback
+        if (!$this->usercancreatefournisseur_order && method_exists($user, 'rights')) {
+            if (isset($user->rights->fournisseur->commande->creer) && $user->rights->fournisseur->commande->creer) {
+                $this->usercancreatefournisseur_order = true;
+            } elseif (isset($user->rights->supplier_order->creer) && $user->rights->supplier_order->creer) {
+                $this->usercancreatefournisseur_order = true;
+            }
+        }
+
+        // Try multiple permission formats for supplier invoices (v17-22 compatibility)
+        $this->usercancreatefournisseur_invoice = false;
+
+        // v22+ format attempts
+        if ($user->hasRight("supplier_invoice", "creer")) {
+            $this->usercancreatefournisseur_invoice = true;
+        } elseif ($user->hasRight("supplier_invoice", "write")) {
+            $this->usercancreatefournisseur_invoice = true;
+        } elseif ($user->hasRight("fournisseur", "facture", "creer")) {
+            $this->usercancreatefournisseur_invoice = true;
+        }
+
+        // v17-21 format fallback
+        if (!$this->usercancreatefournisseur_invoice && method_exists($user, 'rights')) {
+            if (isset($user->rights->fournisseur->facture->creer) && $user->rights->fournisseur->facture->creer) {
+                $this->usercancreatefournisseur_invoice = true;
+            } elseif (isset($user->rights->supplier_invoice->creer) && $user->rights->supplier_invoice->creer) {
+                $this->usercancreatefournisseur_invoice = true;
+            }
         }
 
 
         // Ensure we are on order card or propal card or contract card or invoice card or invoicerec card or supplier_proposal card or supplier_order card or supplier_invoice card or supplier_invoice_rec card
-        
-        if (empty($parameters['currentcontext']) 
+
+        if (empty($parameters['currentcontext'])
             || (strpos($parameters['currentcontext'], 'ordercard') === false
             && strpos($parameters['currentcontext'], 'propalcard') === false
             && strpos($parameters['currentcontext'], 'invoicecard') === false
             && strpos($parameters['currentcontext'], 'supplier_proposalcard') === false
             && strpos($parameters['currentcontext'], 'ordersuppliercard') === false
+            && strpos($parameters['currentcontext'], 'supplier_ordercard') === false  // v22+ naming
             && strpos($parameters['currentcontext'], 'invoicesuppliercard') === false
             ))
         {
             return 0;
         }
         
-        
+
         if($action == 'addNewRowAjax') {
             if ((strpos($parameters['currentcontext'], 'ordercard') !== false && $object->status == Commande::STATUS_DRAFT && $this->usercancreatecommande)
                 || (strpos($parameters['currentcontext'], 'propalcard') !== false && $object->status == Propal::STATUS_DRAFT && $this->usercancreatepropal)
                 || (strpos($parameters['currentcontext'], 'invoicecard') !== false && $object->status == Facture::STATUS_DRAFT && $this->usercancreateinvoice)
                 || (strpos($parameters['currentcontext'], 'supplier_proposalcard') !== false && $object->status == SupplierProposal::STATUS_DRAFT && $this->usercancreatefournisseur_propal)
-                || (strpos($parameters['currentcontext'], 'ordersuppliercard') !== false && $object->status == CommandeFournisseur::STATUS_DRAFT && $this->usercancreatefournisseur_order)
+                || ((strpos($parameters['currentcontext'], 'ordersuppliercard') !== false || strpos($parameters['currentcontext'], 'supplier_ordercard') !== false) && $object->status == CommandeFournisseur::STATUS_DRAFT && $this->usercancreatefournisseur_order)
                 || (strpos($parameters['currentcontext'], 'invoicesuppliercard') !== false && $object->status == FactureFournisseur::STATUS_DRAFT && $this->usercancreatefournisseur_invoice)
                 ) {
 				// Ensure we have a valid order object
@@ -144,11 +176,11 @@ class ActionsBulkaddproducts
                 global $forceall, $senderissupplier, $dateSelector, $inputalsopricewithtax;
                 global $forcetoshowtitlelines;
                 $forcetoshowtitlelines = true;
-                if(strpos($parameters['currentcontext'], 'ordercard') !== false){       
+                if(strpos($parameters['currentcontext'], 'ordercard') !== false){
 			       $inputalsopricewithtax = 1;
                    $object->formAddObjectLine(1, $mysoc, $soc);
                 }
-                elseif(strpos($parameters['currentcontext'], 'ordersuppliercard') !== false){
+                elseif(strpos($parameters['currentcontext'], 'ordersuppliercard') !== false || strpos($parameters['currentcontext'], 'supplier_ordercard') !== false){
                     $forceall = 1;
                     $dateSelector = 0;
                     $inputalsopricewithtax = 1;
@@ -251,7 +283,7 @@ class ActionsBulkaddproducts
     {
         global $user;
         global $langs;
-        
+
         // Set user permissions (compatible with Dolibarr 17-22)
         $this->usercancreatepropal = $user->hasRight("propal", "creer");
         $this->usercancreatecommande = $user->hasRight("commande", "creer");
@@ -263,35 +295,68 @@ class ActionsBulkaddproducts
             $this->usercancreatefournisseur_propal = $user->rights->fournisseur->propal->creer;
         }
 
-        $this->usercancreatefournisseur_order = $user->hasRight("supplier_order", "creer");
-        if (!$this->usercancreatefournisseur_order && method_exists($user, 'rights') && isset($user->rights->fournisseur->commande->creer)) {
-            $this->usercancreatefournisseur_order = $user->rights->fournisseur->commande->creer;
+        // Try multiple permission formats for supplier orders (v17-22 compatibility)
+        $this->usercancreatefournisseur_order = false;
+
+        // v22+ format attempts
+        if ($user->hasRight("supplier_order", "creer")) {
+            $this->usercancreatefournisseur_order = true;
+        } elseif ($user->hasRight("supplier_order", "write")) {
+            $this->usercancreatefournisseur_order = true;
+        } elseif ($user->hasRight("fournisseur", "commande", "creer")) {
+            $this->usercancreatefournisseur_order = true;
         }
 
-        $this->usercancreatefournisseur_invoice = $user->hasRight("supplier_invoice", "creer");
-        if (!$this->usercancreatefournisseur_invoice && method_exists($user, 'rights') && isset($user->rights->fournisseur->facture->creer)) {
-            $this->usercancreatefournisseur_invoice = $user->rights->fournisseur->facture->creer;
+        // v17-21 format fallback
+        if (!$this->usercancreatefournisseur_order && method_exists($user, 'rights')) {
+            if (isset($user->rights->fournisseur->commande->creer) && $user->rights->fournisseur->commande->creer) {
+                $this->usercancreatefournisseur_order = true;
+            } elseif (isset($user->rights->supplier_order->creer) && $user->rights->supplier_order->creer) {
+                $this->usercancreatefournisseur_order = true;
+            }
         }
-        
+
+        // Try multiple permission formats for supplier invoices (v17-22 compatibility)
+        $this->usercancreatefournisseur_invoice = false;
+
+        // v22+ format attempts
+        if ($user->hasRight("supplier_invoice", "creer")) {
+            $this->usercancreatefournisseur_invoice = true;
+        } elseif ($user->hasRight("supplier_invoice", "write")) {
+            $this->usercancreatefournisseur_invoice = true;
+        } elseif ($user->hasRight("fournisseur", "facture", "creer")) {
+            $this->usercancreatefournisseur_invoice = true;
+        }
+
+        // v17-21 format fallback
+        if (!$this->usercancreatefournisseur_invoice && method_exists($user, 'rights')) {
+            if (isset($user->rights->fournisseur->facture->creer) && $user->rights->fournisseur->facture->creer) {
+                $this->usercancreatefournisseur_invoice = true;
+            } elseif (isset($user->rights->supplier_invoice->creer) && $user->rights->supplier_invoice->creer) {
+                $this->usercancreatefournisseur_invoice = true;
+            }
+        }
+
         // Ensure we are on order card or propal card or contract card or invoice card or invoicerec card or supplier_proposal card or supplier_order card or supplier_invoice card or supplier_invoice_rec card
-        if (empty($parameters['currentcontext']) 
+        if (empty($parameters['currentcontext'])
             || (strpos($parameters['currentcontext'], 'ordercard') === false
             && strpos($parameters['currentcontext'], 'propalcard') === false
             && strpos($parameters['currentcontext'], 'invoicecard') === false
             && strpos($parameters['currentcontext'], 'supplier_proposalcard') === false
             && strpos($parameters['currentcontext'], 'ordersuppliercard') === false
+            && strpos($parameters['currentcontext'], 'supplier_ordercard') === false  // v22+ naming
             && strpos($parameters['currentcontext'], 'invoicesuppliercard') === false
             ))
         {
             return 0;
         }
 
-        if (($action != 'selectlines' && $action != 'editline') 
+        if (($action != 'selectlines' && $action != 'editline')
         && ((strpos($parameters['currentcontext'], 'ordercard') !== false && $object->status == Commande::STATUS_DRAFT && $this->usercancreatecommande)
             || (strpos($parameters['currentcontext'], 'propalcard') !== false && $object->status == Propal::STATUS_DRAFT && $this->usercancreatepropal)
             || (strpos($parameters['currentcontext'], 'invoicecard') !== false && $object->status == Facture::STATUS_DRAFT && $this->usercancreateinvoice)
             || (strpos($parameters['currentcontext'], 'supplier_proposalcard') !== false && $object->status == SupplierProposal::STATUS_DRAFT && $this->usercancreatefournisseur_propal)
-            || (strpos($parameters['currentcontext'], 'ordersuppliercard') !== false && $object->status == CommandeFournisseur::STATUS_DRAFT && $this->usercancreatefournisseur_order)
+            || ((strpos($parameters['currentcontext'], 'ordersuppliercard') !== false || strpos($parameters['currentcontext'], 'supplier_ordercard') !== false) && $object->status == CommandeFournisseur::STATUS_DRAFT && $this->usercancreatefournisseur_order)
             || (strpos($parameters['currentcontext'], 'invoicesuppliercard') !== false && $object->status == FactureFournisseur::STATUS_DRAFT && $this->usercancreatefournisseur_invoice)
             )) {
             // Reset counter when page loads for a new order
@@ -768,7 +833,7 @@ class ActionsBulkaddproducts
             return 'compta/facture/card.php';
         } elseif (strpos($context, 'supplier_proposalcard') !== false) {
             return 'supplier_proposal/card.php';
-        } elseif (strpos($context, 'ordersuppliercard') !== false) {
+        } elseif (strpos($context, 'ordersuppliercard') !== false || strpos($context, 'supplier_ordercard') !== false) {
             return 'fourn/commande/card.php';
         } elseif (strpos($context, 'invoicesuppliercard') !== false) {
             return 'fourn/facture/card.php';
