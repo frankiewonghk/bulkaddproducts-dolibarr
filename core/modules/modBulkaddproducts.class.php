@@ -87,7 +87,7 @@ class modBulkaddproducts extends DolibarrModules
         $this->conflictwith = array(); // List of module class names as string this module is in conflict with. Example: array('modModuleToDisable1', ...)
         $this->langfiles = array("bulkaddproducts@bulkaddproducts");
         $this->phpmin = array(7, 0); // Minimum version of PHP required by module
-        $this->need_dolibarr_version = array(11, 0); // Minimum version of Dolibarr required by module
+        $this->need_dolibarr_version = array(17, 0); // Minimum version of Dolibarr required by module (17.x–22.x)
 
         // Constants
         $this->const = array();
@@ -147,18 +147,18 @@ class modBulkaddproducts extends DolibarrModules
      */
     private function checkCompatibility()
     {
-        // Include the actions class to check compatibility
-        $actionsFile = DOL_DOCUMENT_ROOT.'/custom/bulkaddproducts/class/actions_bulkaddproducts.class.php';
-        if (file_exists($actionsFile)) {
-            include_once $actionsFile;
-            if (class_exists('ActionsBulkaddproducts')) {
-                $actions = new ActionsBulkaddproducts();
-                return $actions->isCompatible;
-            }
+        global $conf;
+
+        // Get Dolibarr version with multiple fallbacks (required during module init when $conf may not be fully loaded)
+        $dolibarrVersion = '0.0.0';
+        if (!empty($conf->global->MAIN_VERSION_LAST_INSTALL)) {
+            $dolibarrVersion = $conf->global->MAIN_VERSION_LAST_INSTALL;
+        } elseif (defined('DOL_VERSION')) {
+            $dolibarrVersion = DOL_VERSION;
         }
-        
-        // If we can't check compatibility, assume it's not compatible for safety
-        return false;
+
+        // Compatible with Dolibarr 17.0.0 and later (including 22.x)
+        return version_compare($dolibarrVersion, '17.0.0', '>=');
     }
 
     /**
