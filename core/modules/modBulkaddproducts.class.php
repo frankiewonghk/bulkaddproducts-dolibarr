@@ -47,7 +47,7 @@ class modBulkaddproducts extends DolibarrModules
         $this->descriptionlong = "This module provides hook-based functionality to add multiple products to customer and supplier documents including Quotations, Sales Orders, Customer Invoices, Purchase Orders and Supplier Invoices.";
 
         // Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-        $this->version = '1.0.5';
+        $this->version = '1.0.6';
 
         // Url to the file with your last numberversion of this module
         $this->url_last_version = '';
@@ -141,23 +141,27 @@ class modBulkaddproducts extends DolibarrModules
     }
 
     /**
-     * Check if the module is compatible with the current Dolibarr version
+     * Check if the module is compatible with the current Dolibarr version.
+     * We rely on the core DOL_VERSION constant only and never block activation
+     * if the version string is unavailable (to avoid false negatives).
      *
      * @return bool True if compatible, false otherwise
      */
     private function checkCompatibility()
     {
-        global $conf;
-
-        // Get Dolibarr version with multiple fallbacks (required during module init when $conf may not be fully loaded)
-        $dolibarrVersion = '0.0.0';
-        if (!empty($conf->global->MAIN_VERSION_LAST_INSTALL)) {
-            $dolibarrVersion = $conf->global->MAIN_VERSION_LAST_INSTALL;
-        } elseif (defined('DOL_VERSION')) {
-            $dolibarrVersion = DOL_VERSION;
+        // If Dolibarr version is not known at this stage, do not block activation
+        if (!defined('DOL_VERSION') || empty(DOL_VERSION)) {
+            return true;
         }
 
-        // Compatible with Dolibarr 17.0.0 and later (including 22.x)
+        // Normalize version (strip any suffix like -dev, -alpha, etc.) for comparison
+        $dolibarrVersion = preg_replace('/[^0-9.].*$/', '', DOL_VERSION);
+        if (empty($dolibarrVersion)) {
+            // Safety net: if normalization failed, fall back to allowing activation
+            return true;
+        }
+
+        // Compatible with Dolibarr 17.0.0 and later (including 21.x, 22.x, ...)
         return version_compare($dolibarrVersion, '17.0.0', '>=');
     }
 
