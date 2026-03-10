@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.7 — 2026-03-10
+- Add support for Dolibarr 23.0.0
+
 ## 1.0.5 — 2026-02-15
 - Fix Purchase Order (Supplier Order) permission checking for Dolibarr 22.0.4
 - Enhanced permission detection with multiple format attempts (supplier_order, fournisseur/commande)
